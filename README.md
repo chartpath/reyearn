@@ -2,7 +2,7 @@
 
 ![](https://media.giphy.com/media/3orif368drh8LRG7WU/giphy.gif)
 
-A data experimentation and model training project. Reyearn aims to help people evolve machine learning models in production by looping the ETL -> annotation -> training -> testing -> deployment pipeline for rapid iteration. It is designed to be used with applications that support an ensemble of models approach.
+A data experimentation and model training framework. Reyearn aims to help people evolve machine learning models and inference engines in production by looping the pipeline lifecycle: ETL -> annotation -> training or tuning -> testing -> deploying. It is designed to be used with applications that take an ensemble-of-models approach.
 
 ## TODO
 
