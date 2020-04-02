@@ -2,4 +2,7 @@
 **/__pycache__
 *.pyc
 .DS_Store
-data/import/emails
+data/import/email/**
+!data/import/email/README.md
+!data/import/email/email.business/.test
+!data/import/email/email.personal/.test
