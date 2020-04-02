@@ -1,31 +1,26 @@
-from starlette.responses import JSONResponse
-from starlette.routing import Route
-from db import repo
+from fastapi import APIRouter, Request
+from db import schemas
+
+router = APIRouter()
 
 
-async def root(req):
-    return JSONResponse({"ack": "ok"})
+@router.get("/")
+async def root():
+    return {"ack": "ok"}
 
 
-async def annotations(req):
+@router.get("/annotations")
+async def read_annotations(req: Request):
     db = req.app.state.db_client
-    if req.method == "POST":
-        body = await request.json()
-        if body.class_id and body.observation_id:
-            new_annotation = await repo.create_annotations(db)
-            print(new_annotation)
-            return JSONResponse({"msg": "created"})
-        else:
-            return JSONResponse(
-                {"msg": "class_id and observation_id required"}, status_code=400
-            )
-    elif req.method == "GET":
-        annotations = await repo.fetch_annotations(db)
-        print(annotations)
-        return JSONResponse(annotations)
+    annotations = await db.fetch_all(schemas.annotations.select())
+    return annotations
 
 
-routes = [
-    Route("/", root),
-    Route("/annotations", annotations, methods=["GET", "POST"]),
-]
+@router.post("/annotations")
+async def create_annotation(anno: dict, req: Request):
+    db = req.app.state.db_client
+    query = schemas.annotations.insert().values(
+        class_id=anno["class_id"], observation_id=anno["observation_id"]
+    )
+    last_record_id = await db.execute(query)
+    return {**anno, "id": last_record_id}

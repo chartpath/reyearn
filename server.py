@@ -1,6 +1,5 @@
-from starlette.applications import Starlette
 from fastapi import FastAPI
-from api.handlers import routes
+from api import handlers
 from db.client import db as db_client
 import db.schemas as db_schemas
 from dags import importer, trainer
@@ -15,17 +14,15 @@ if DEBUG:
         debug=DEBUG,
         on_startup=debug_startup_events,
         on_shutdown=[db_client.disconnect],
-        routes=routes,
     )
 else:
     app = FastAPI(
-        debug=DEBUG,
-        on_startup=[db_client.connect],
-        on_shutdown=[db_client.disconnect],
-        routes=routes,
+        debug=DEBUG, on_startup=[db_client.connect], on_shutdown=[db_client.disconnect],
     )
 app.state.db_client = db_client
 app.state.db_schemas = db_schemas
+
+app.include_router(handlers.router)
 
 if __name__ == "__main__":
     import uvicorn
