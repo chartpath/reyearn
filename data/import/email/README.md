@@ -1,3 +1,5 @@
+# Data Import
+
 Place email text files here for them to be automatically imported.
 
 The directory naming convention is `data/import/<class-type>/<class-label>`.

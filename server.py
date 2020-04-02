@@ -6,7 +6,7 @@ from dags import importer
 
 app = Starlette(
     debug=True,
-    on_startup=[db_client.connect],
+    on_startup=[db_client.connect, importer.main],
     on_shutdown=[db_client.disconnect],
     routes=routes,
 )
