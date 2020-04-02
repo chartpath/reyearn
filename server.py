@@ -2,11 +2,11 @@ from starlette.applications import Starlette
 from api.handlers import routes
 from db.client import db as db_client
 import db.schemas as db_schemas
-from dags import importer as data_importer
+from dags import importer, trainer
 
 app = Starlette(
     debug=True,
-    on_startup=[db_client.connect, data_importer.main],
+    on_startup=[db_client.connect, importer.main, trainer.main],
     on_shutdown=[db_client.disconnect],
     routes=routes,
 )
