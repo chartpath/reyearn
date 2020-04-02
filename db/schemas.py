@@ -4,6 +4,7 @@ from sqlalchemy_utils import LtreeType
 
 base_schema = "reyearn"
 tenant_id = 0
+default_tenant_schema = f"{base_schema}_tenant_{tenant_id}"
 
 metadata = sa.MetaData()
 
@@ -25,6 +26,18 @@ annotations = sa.Table(
     "annotations",
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column(
+        "observation_id",
+        sa.Integer,
+        sa.ForeignKey(f"{default_tenant_schema}.observations.id"),
+        nullable=False,
+    ),
+    sa.Column(
+        "class_id",
+        sa.Integer,
+        sa.ForeignKey(f"{base_schema}.classes.id"),
+        nullable=False,
+    ),
     schema=base_schema,
 )
 
@@ -33,5 +46,5 @@ observations = sa.Table(
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("text", sa.Text()),
-    schema=f"{base_schema}_tenant_{tenant_id}",
+    schema=default_tenant_schema,
 )
