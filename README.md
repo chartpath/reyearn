@@ -6,9 +6,10 @@ A data experimentation and model training framework. Reyearn aims to help people
 
 ## TODO
 
-- [x] db for annotations, experiments, observations
+- [x] db for classes, annotations, observations
 - [x] split schemas for multi-tenant support
 - [ ] data ingestion ETL pipeline
+- [ ] db for experiments and models
 - [ ] model training pipeline (implementation stubbed)
 - [ ] api endpoints for annotation and prediction
 - [ ] default TF-IDF naive bayes text classifier

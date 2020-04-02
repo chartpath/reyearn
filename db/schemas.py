@@ -48,3 +48,25 @@ observations = sa.Table(
     sa.Column("text", sa.Text()),
     schema=default_tenant_schema,
 )
+
+experiments = sa.Table(
+    "experiments",
+    metadata,
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("name", sa.String(length=100), nullable=False),
+    sa.Column("class_type", sa.Enum(ClassTypes), nullable=False),
+    sa.Column("label_root", LtreeType, nullable=False),
+    schema=base_schema,
+)
+
+models = sa.Table(
+    "models",
+    metadata,
+    sa.Column("id", sa.Integer, primary_key=True),
+    sa.Column("version", sa.String(length=30), nullable=False, unique=True),
+    sa.Column("accuracy", sa.DECIMAL(6)),
+    sa.Column("precision", sa.DECIMAL(6)),
+    sa.Column("recall", sa.DECIMAL(6)),
+    sa.Column("f1", sa.DECIMAL(6)),
+    schema=base_schema,
+)
