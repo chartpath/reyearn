@@ -27,14 +27,16 @@ def upgrade():
         """
         --sql
         --create classtypes enum type
-        create type classtypes as enum('email');
+        create type reyearn.classtypes as enum('email');
         """
     )
     op.alter_column(
         "classes",
         "type",
-        type_=sa.Enum(ClassTypes),
-        postgresql_using="type::classtypes",
+        schema="reyearn",
+        type_=sa.Enum(ClassTypes, schema="reyearn"),
+        postgresql_using="type::reyearn.classtypes",
+        nullable=False,
     )
 
 

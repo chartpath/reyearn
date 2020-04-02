@@ -6,9 +6,10 @@ Create Date: 2020-03-31 22:10:16.707479
 
 """
 from alembic import op
-import sqlalchemy as sqla
+import sqlalchemy as sa
 from sqlalchemy_utils import LtreeType
 
+print(op.get_context())
 
 # revision identifiers, used by Alembic.
 revision = "c5e6204a5d44"
@@ -20,29 +21,32 @@ depends_on = None
 def upgrade():
 
     op.execute(
-        """
-        --sql
-        --add LTREE data type
+        f"""
+        --sql --add schma
+        create schema if not exists reyearn;
+        --sql --add LTREE data type
         create extension if not exists ltree;
         """
     )
 
     op.create_table(
         "classes",
-        sqla.Column("id", sqla.Integer, primary_key=True),
-        sqla.Column("type", sqla.String(length=100)),
-        sqla.Column("label", LtreeType),
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("type", sa.String(length=100)),
+        sa.Column("label", LtreeType),
+        schema="reyearn",
     )
 
     op.create_table(
-        "annotations", sqla.Column("id", sqla.Integer, primary_key=True),
+        "annotations", sa.Column("id", sa.Integer, primary_key=True), schema="reyearn",
     )
 
     op.create_table(
         "observations",
-        sqla.Column("id", sqla.Integer, primary_key=True),
-        sqla.Column("id", sqla.Integer, primary_key=True),
-        sqla.Column("text", sqla.Text()),
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column("text", sa.Text()),
+        schema="reyearn",
     )
 
 
