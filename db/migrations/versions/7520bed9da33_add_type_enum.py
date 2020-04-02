@@ -15,6 +15,8 @@ down_revision = "c5e6204a5d44"
 branch_labels = None
 depends_on = None
 
+base_schema = "reyearn"
+
 import enum
 
 
@@ -24,17 +26,17 @@ class ClassTypes(enum.Enum):
 
 def upgrade():
     op.execute(
-        """
+        f"""
         --sql
         --create classtypes enum type
-        create type reyearn.classtypes as enum('email');
+        create type {base_schema}.classtypes as enum('email');
         """
     )
     op.alter_column(
         "classes",
         "type",
-        schema="reyearn",
-        type_=sa.Enum(ClassTypes, schema="reyearn"),
+        schema=base_schema,
+        type_=sa.Enum(ClassTypes, schema=base_schema),
         postgresql_using="type::reyearn.classtypes",
         nullable=False,
     )

@@ -17,13 +17,19 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
+base_schema = "reyearn"
+tenant_id = 0
+default_tenant_schma = f"{base_schema}_tenant_{tenant_id}"
+
 
 def upgrade():
 
     op.execute(
         f"""
-        --sql --add schma
-        create schema if not exists reyearn;
+        --sql --add main schma
+        create schema if not exists {base_schema};
+        --sql --add default tenant schema
+        create schema if not exists {default_tenant_schma};
         --sql --add LTREE data type
         create extension if not exists ltree;
         """
@@ -34,11 +40,13 @@ def upgrade():
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("type", sa.String(length=100)),
         sa.Column("label", LtreeType),
-        schema="reyearn",
+        schema=base_schema,
     )
 
     op.create_table(
-        "annotations", sa.Column("id", sa.Integer, primary_key=True), schema="reyearn",
+        "annotations",
+        sa.Column("id", sa.Integer, primary_key=True),
+        schema=base_schema,
     )
 
     op.create_table(
@@ -46,7 +54,7 @@ def upgrade():
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("text", sa.Text()),
-        schema="reyearn",
+        schema=default_tenant_schma,
     )
 
 
