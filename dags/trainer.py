@@ -43,7 +43,9 @@ def test_model(trained_model, test_data):
     print("training model...")
 
 
-def main(params={"rand": True, "limit": 1000, "class_type": "email"}):
+def main(
+    use_dashboard=False, params={"rand": True, "limit": 1000, "class_type": "email"}
+):
 
     with Flow("trainer", schedule=None) as flow:
 
@@ -57,10 +59,14 @@ def main(params={"rand": True, "limit": 1000, "class_type": "email"}):
         trained_model = train_model(training_data)
         test_model(trained_model, test_data)
 
-    flow_state = flow.run(executor=DaskExecutor(), parameters=params)
-
-    # uncomment to output pdf visualization of this flow
-    flow.visualize(flow_state=flow_state, filename="dags/trainer_latest")
+        if use_dashboard:
+            # register with dashboard
+            flow.register(project_name="Reyearn")
+            flow.run_agent(show_flow_logs=True)
+        else:
+            flow_state = flow.run(executor=DaskExecutor(), parameters=params)
+            # uncomment to output pdf visualization of this flow
+            # flow.visualize(flow_state=flow_state, filename="dags/trainer_latest")
 
 
 if __name__ == "__main__":

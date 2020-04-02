@@ -29,3 +29,4 @@ The importer dag looks like this:
 The trainer dag looks like this:
 
 ![](dags/trainer.png)
+Note: the top-level entities rand, limit, and class_type are parameters for controlling the sample.

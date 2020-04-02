@@ -46,7 +46,7 @@ def load_transformed_unlabelled_data(unlabelled_data):
     print("saving lunabelled data...")
 
 
-def main():
+def main(use_dashboard=False):
 
     with Flow("importer", schedule=None) as flow:
 
@@ -57,10 +57,14 @@ def main():
         load_labelled_data(labelled_data)
         load_transformed_unlabelled_data(transformed_unlabelled_data)
 
-    flow_state = flow.run(executor=DaskExecutor())
-
-    # uncomment to output pdf visualization of this flow
-    # flow.visualize(flow_state=flow_state, filename="dags/importer_latest")
+        if use_dashboard:
+            # register with dashboard
+            flow.register(project_name="Reyearn")
+            flow.run_agent(show_flow_logs=True)
+        else:
+            flow_state = flow.run(executor=DaskExecutor())
+            # uncomment to output pdf visualization of this flow
+            # flow.visualize(flow_state=flow_state, filename="dags/importer_latest")
 
 
 if __name__ == "__main__":
