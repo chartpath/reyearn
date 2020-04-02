@@ -67,6 +67,7 @@ def main(params={"rand": True, "limit": 1000, "class_type": "email"}):
         # flow.run_agent(show_flow_logs=True)
 
         flow_state = flow.run(executor=DaskExecutor(), parameters=params)
+
         # uncomment to output pdf visualization of this flow
         # flow.visualize(flow_state=flow_state, filename="dags/trainer_latest")
 

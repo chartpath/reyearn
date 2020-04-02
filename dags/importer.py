@@ -65,6 +65,7 @@ def main():
 
         # agent can be run externally with `prefect agent start`
         # flow.run_agent(show_flow_logs=True)
+
         flow_state = flow.run(executor=DaskExecutor())
 
         # uncomment to output pdf visualization of this flow

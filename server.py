@@ -1,21 +1,24 @@
 from starlette.applications import Starlette
+from fastapi import FastAPI
 from api.handlers import routes
 from db.client import db as db_client
 import db.schemas as db_schemas
 from dags import importer, trainer
 
 DEBUG = True
-debug_startup_events = [db_client.connect, importer.main, trainer.main]
+# add importer.main, trainer.main to trigger dags on startup
+# run them manually with `python -m dags.trainer` and `python -m dags.trainer`
+debug_startup_events = [db_client.connect]
 
 if DEBUG:
-    app = Starlette(
+    app = FastAPI(
         debug=DEBUG,
         on_startup=debug_startup_events,
         on_shutdown=[db_client.disconnect],
         routes=routes,
     )
 else:
-    app = Starlette(
+    app = FastAPI(
         debug=DEBUG,
         on_startup=[db_client.connect],
         on_shutdown=[db_client.disconnect],
