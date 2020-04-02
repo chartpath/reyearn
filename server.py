@@ -2,6 +2,7 @@ from starlette.applications import Starlette
 from api.handlers import routes
 from db.client import db as db_client
 import db.schemas as db_schemas
+from dags import importer
 
 app = Starlette(
     debug=True,
