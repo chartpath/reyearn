@@ -10,7 +10,7 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [x] split schemas for multi-tenant support
 - [x] data ingestion ETL pipeline
 - [x] db for experiments and models
-- [ ] model training pipeline (implementation stubbed)
+- [x] model training pipeline (implementation stubbed)
 - [ ] api endpoints for annotation and prediction
 - [ ] default TF-IDF naive bayes text classifier
 - [ ] integration tests
@@ -18,8 +18,14 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [ ] proper config management
 - [ ] basic JWT
 
-## Implementation Notes
+## Implementation Details
 
-Reyearn uses `prefect` to run its workflows ("dags") in a parallel and distributed. The importer dag looks like this:
+Reyearn uses [`prefect`](https://docs.prefect.io/core/getting_started/why-prefect.html) for parallel and distributed execution of workflows ("dags"). It uses [`dask`](https://docs.dask.org/en/latest/why.html) for running serialized distributed tasks that integrate well with the Python data science ecosystem.
 
-![](dags/importer.jpg)
+The importer dag looks like this:
+
+![](dags/importer.png)
+
+The trainer dag looks like this:
+
+![](dags/trainer.png)

@@ -7,4 +7,5 @@ data/import/email/**
 !data/import/email/email.business/.example
 !data/import/email/email.personal/.example
 dags/importer_latest*
+dags/trainer_latest*
 dask-worker-space

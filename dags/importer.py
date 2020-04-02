@@ -1,11 +1,14 @@
 from datetime import timedelta
 from prefect import task, Flow
 from prefect.engine.executors import DaskExecutor
-from db import client
+
+# uses a separate pool from the server app
+from db.client import db as db_client
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=1))
 def extract_labelled_data():
+    # db_client
     labelled_data = [
         {"label": "email.business", "text": "This is a business email."},
         {"label": "email.personal", "text": "This is a personal email."},
@@ -45,20 +48,19 @@ def load_transformed_unlabelled_data(unlabelled_data):
 
 def main():
 
-    with Flow("etl", schedule=None) as flow:
+    with Flow("importer", schedule=None) as flow:
 
+        # tasks
         labelled_data = extract_labelled_data()
         unlabelled_data = extract_unlabelled_data()
-
         transformed_unlabelled_data = transform(labelled_data, unlabelled_data)
-
         load_labelled_data(labelled_data)
         load_transformed_unlabelled_data(transformed_unlabelled_data)
 
     flow_state = flow.run(executor=DaskExecutor())
 
     # uncomment to output pdf visualization of this flow
-    flow.visualize(flow_state=flow_state, filename="dags/importer_latest")
+    # flow.visualize(flow_state=flow_state, filename="dags/importer_latest")
 
 
 if __name__ == "__main__":
