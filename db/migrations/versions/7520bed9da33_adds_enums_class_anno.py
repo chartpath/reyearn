@@ -24,12 +24,23 @@ class ClassTypes(enum.Enum):
     email = "email"
 
 
+class AnnotationStatus(enum.Enum):
+    unknown: str = "unknown"
+    predicted: str = "predicted"
+    confirmed: str = "confirmed"
+    rejected: str = "rejected"
+
+
 def upgrade():
     op.execute(
         f"""
         --sql
         --create classtypes enum type
         create type {base_schema}.classtypes as enum('email');
+        --sql
+        --create annotationstatus enum type
+        create type {base_schema}.annotationstatus 
+            as enum('unknown', 'predicted', 'confirmed', 'rejected');
         """
     )
     op.alter_column(
@@ -37,8 +48,17 @@ def upgrade():
         "type",
         schema=base_schema,
         type_=sa.Enum(ClassTypes, schema=base_schema),
-        postgresql_using="type::reyearn.classtypes",
+        postgresql_using=f"type::{base_schema}.classtypes",
         nullable=False,
+    )
+    op.add_column(
+        "annotations",
+        sa.Column(
+            "status",
+            sa.Enum(AnnotationStatus, schema=base_schema),
+            server_default="unknown",
+        ),
+        schema=base_schema,
     )
 
 

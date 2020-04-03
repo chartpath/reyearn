@@ -52,8 +52,8 @@ def upgrade():
     op.create_table(
         "observations",
         sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("text", sa.Text()),
+        sa.Column("md5", sa.String(), unique=True),
         schema=default_tenant_schma,
     )
 

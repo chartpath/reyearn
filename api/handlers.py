@@ -15,6 +15,7 @@ async def root():
 class AnnotationCreate(BaseModel):
     class_id: int
     observation_id: int
+    status: str = None
 
 
 class AnnotationRead(BaseModel):
@@ -36,7 +37,7 @@ async def create_annotation(
 ):
     db = req.app.state.db_client
     query = schemas.annotations.insert().values(
-        class_id=anno.class_id, observation_id=anno.observation_id
+        class_id=anno.class_id, observation_id=anno.observation_id, status=anno.status
     )
     last_record_id = await db.execute(query)
 
@@ -57,8 +58,8 @@ class ObservationRead(BaseModel):
 @router.get("/observations", response_model=List[ObservationRead])
 async def read_observations(req: Request):
     db = req.app.state.db_client
-    annotations = await db.fetch_all(schemas.observations.select())
-    return annotations
+    observations = await db.fetch_all(schemas.observations.select())
+    return observations
 
 
 @router.post("/observations", response_model=ObservationRead)
@@ -67,3 +68,20 @@ async def create_observations(obs: ObservationCreate, req: Request):
     query = schemas.observations.insert().values(text=obs.text)
     last_record_id = await db.execute(query)
     return {**obs.dict(), "id": last_record_id}
+
+
+class PredictionCreate(BaseModel):
+    text: str = None
+    observation_id: int = None
+
+
+class PredictionRead(BaseModel):
+    label: str
+    annotation_id: int
+
+
+@router.post("/predictions/{class_type}", response_model=PredictionRead)
+async def read_prediction(class_type: str, predict: PredictionCreate, req: Request):
+    db = req.app.state.db_client
+    prediction = {"observation_id": 1}
+    return prediction

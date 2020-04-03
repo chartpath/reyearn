@@ -6,7 +6,7 @@ import db.schemas as db_schemas
 from dags import importer, trainer
 
 DEBUG = True
-# add importer.main, trainer.main to trigger dags on startup
+# add importer.main, trainer.main (or others) to trigger dags on startup
 # run them manually with `python -m dags.trainer` and `python -m dags.trainer`
 debug_startup_events = [db_client.connect]
 
@@ -14,13 +14,17 @@ if DEBUG:
     os.environ["PREFECT__LOGGING__LEVEL"] = "DEBUG"
     print("set prefect log level:", os.environ["PREFECT__LOGGING__LEVEL"])
     app = FastAPI(
+        title="Reyearn API",
         debug=DEBUG,
         on_startup=debug_startup_events,
         on_shutdown=[db_client.disconnect],
     )
 else:
     app = FastAPI(
-        debug=DEBUG, on_startup=[db_client.connect], on_shutdown=[db_client.disconnect],
+        title="Reyearn API",
+        debug=DEBUG,
+        on_startup=[db_client.connect],
+        on_shutdown=[db_client.disconnect],
     )
 app.state.db_client = db_client
 app.state.db_schemas = db_schemas

@@ -5,10 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Module",
+            "name": "Importer DAG",
             "type": "python",
             "request": "launch",
-            "module": "server"
+            "module": "dags.importer",
+            "env": {
+                "PREFECT__LOGGING__LEVEL": "DEBUG"
+            }
+        },
+        {
+            "name": "Server",
+            "type": "python",
+            "request": "launch",
+            "module": "server",
         },
     ]
 }

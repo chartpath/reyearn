@@ -10,7 +10,7 @@ metadata = sa.MetaData()
 
 
 class ClassTypes(enum.Enum):
-    email = "email"  # e.g. RFC 2822
+    email: str = "email"  # e.g. RFC 2822
 
 
 classes = sa.Table(
@@ -21,6 +21,14 @@ classes = sa.Table(
     sa.Column("label", LtreeType),
     schema=base_schema,
 )
+
+
+class AnnotationStatus(enum.Enum):
+    unknown: str = "unknown"
+    predicted: str = "predicted"
+    confirmed: str = "confirmed"
+    rejected: str = "rejected"
+
 
 annotations = sa.Table(
     "annotations",
@@ -38,6 +46,7 @@ annotations = sa.Table(
         sa.ForeignKey(f"{base_schema}.classes.id"),
         nullable=False,
     ),
+    sa.Column("status", sa.Enum(AnnotationStatus), server_default="unknown"),
     schema=base_schema,
 )
 
@@ -46,6 +55,7 @@ observations = sa.Table(
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("text", sa.Text()),
+    sa.Column("md5", sa.String(), unique=True),
     schema=default_tenant_schema,
 )
 
@@ -64,9 +74,9 @@ models = sa.Table(
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("version", sa.String(length=30), nullable=False, unique=True),
-    sa.Column("accuracy", sa.DECIMAL(6)),
-    sa.Column("precision", sa.DECIMAL(6)),
-    sa.Column("recall", sa.DECIMAL(6)),
-    sa.Column("f1", sa.DECIMAL(6)),
+    sa.Column("accuracy", sa.DECIMAL(precision=6, scale=5)),
+    sa.Column("precision", sa.DECIMAL(precision=6, scale=5)),
+    sa.Column("recall", sa.DECIMAL(precision=6, scale=5)),
+    sa.Column("f1", sa.DECIMAL(precision=6, scale=5)),
     schema=base_schema,
 )
