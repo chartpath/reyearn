@@ -14,7 +14,8 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [x] API endpoints for annotations, predictions and observations
 - [ ] default text classifier with gensim
 - [ ] UUIDs for external access
-- [ ] zip file upload observations
+- [ ] symlinks for multi-label import
+- [ ] gzip file upload observations
 - [ ] integration tests
 - [ ] CLI to wrap DAGs and API
 - [ ] tutorial in docs

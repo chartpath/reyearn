@@ -2,9 +2,12 @@ from datetime import timedelta
 from prefect import task, Flow
 from prefect.engine.executors import DaskExecutor
 import os
+from prefect.tasks.postgres import PostgresExecute, PostgresFetch
 
 # uses a separate pool from the server app
-from db.client import db as db_client
+from db.schemas import observations, annotations
+
+pg_task = PostgresExecute("reyearn_dev", user=None, password=None, host="localhost",)
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=1))
@@ -32,42 +35,35 @@ def build_file_lists():
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=1))
-def extract_labelled_data(chunked_labelled_files):
-    labelled_data = [
-        {"label": "email.business", "text": "This is a business email."},
-        {"label": "email.personal", "text": "This is a personal email."},
-    ]
-    print("fetching labelled data...", labelled_data)
-    return labelled_data
+def load_labelled_data(chunked_labelled_files):
+    for file in chunked_labelled_files:
+        with open(file, "r") as filehandle:
+            filecontent = filehandle.read()
+            pg_task.run(
+                query=f"""
+                    --sql
+                    insert into reyearn_tenant_0.observations (text, md5)
+                        values (%s, MD5(%s));
+                """,
+                data=(filecontent, filecontent),
+            )
+    return True
 
 
 @task(max_retries=3, retry_delay=timedelta(seconds=1))
-def extract_unlabelled_data(chunked_unlabelled_files):
-    unlabelled_data = [
-        "This is a very new business email observation.",
-        "This is a super new personal email observation.",
-    ]
-    print("fetching unlabelled data...", unlabelled_data)
-    return unlabelled_data
-
-
-@task
-def transform(labelled_data, unlabelled_data):
-    transformed_unlabelled_data = []
-    for observation in unlabelled_data:
-        transformed_unlabelled_data.append({"label": "email", "text": observation})
-    print("cleaning and transforming data...", transformed_unlabelled_data)
-    return transformed_unlabelled_data
-
-
-@task
-def load_labelled_data(labelled_data):
-    print("saving labelled data...")
-
-
-@task
-def load_transformed_unlabelled_data(unlabelled_data):
-    print("saving lunabelled data...")
+def load_unlabelled_data(chunked_unlabelled_files):
+    for file in chunked_unlabelled_files:
+        with open(file, "r") as filehandle:
+            filecontent = filehandle.read()
+            pg_task.run(
+                query=f"""
+                    --sql
+                    insert into reyearn_tenant_0.observations (text, md5)
+                        values (%s, MD5(%s));
+                """,
+                data=(filecontent, filecontent),
+            )
+    return True
 
 
 def main():
@@ -77,11 +73,8 @@ def main():
         # tasks
         chunked_files = build_file_lists()
         # map to flatten load curve
-        labelled_data = extract_labelled_data.map(chunked_files[0])
-        unlabelled_data = extract_unlabelled_data.map(chunked_files[1])
-        transformed_unlabelled_data = transform(labelled_data, unlabelled_data)
-        load_labelled_data(labelled_data)
-        load_transformed_unlabelled_data(transformed_unlabelled_data)
+        labelled_data_loaded = load_labelled_data.map(chunked_files[0])
+        unlabelled_data_loaded = load_unlabelled_data.map(chunked_files[1])
 
         # register with dashboard
         try:
@@ -95,7 +88,7 @@ def main():
         flow_state = flow.run(executor=DaskExecutor())
 
         # uncomment to output pdf visualization of this flow
-        # flow.visualize(flow_state=flow_state, filename="dags/importer_latest")
+        flow.visualize(flow_state=flow_state, filename="dags/importer_latest")
 
 
 if __name__ == "__main__":
