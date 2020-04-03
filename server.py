@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from api import handlers
+import os
 from db.client import db as db_client
 import db.schemas as db_schemas
 from dags import importer, trainer
@@ -10,6 +11,8 @@ DEBUG = True
 debug_startup_events = [db_client.connect]
 
 if DEBUG:
+    os.environ["PREFECT__LOGGING__LEVEL"] = "DEBUG"
+    print("set prefect log level:", os.environ["PREFECT__LOGGING__LEVEL"])
     app = FastAPI(
         debug=DEBUG,
         on_startup=debug_startup_events,

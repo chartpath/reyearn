@@ -11,10 +11,11 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [x] data ingestion ETL pipeline
 - [x] db for experiments and models
 - [x] model training pipeline (implementation stubbed)
-- [ ] api endpoints for annotation and prediction
+- [ ] api endpoints for annotations, predictions and observations
 - [ ] default TF-IDF naive bayes text classifier
+- [ ] add UUIDs for external access
 - [ ] integration tests
-- [ ] quickstart docs
+- [ ] tutorial in docs
 - [ ] proper config management
 - [ ] basic JWT
 

@@ -1,7 +1,8 @@
 from typing import List
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, BackgroundTasks
 from pydantic import BaseModel
 from db import schemas
+from dags import trainer
 
 router = APIRouter()
 
@@ -30,12 +31,17 @@ async def read_annotations(req: Request):
 
 
 @router.post("/annotations", response_model=AnnotationRead)
-async def create_annotation(anno: AnnotationCreate, req: Request):
+async def create_annotation(
+    anno: AnnotationCreate, req: Request, background_tasks: BackgroundTasks
+):
     db = req.app.state.db_client
     query = schemas.annotations.insert().values(
         class_id=anno.class_id, observation_id=anno.observation_id
     )
     last_record_id = await db.execute(query)
+
+    # retrain the model
+    background_tasks.add_task(trainer.main)
     return {**anno.dict(), "id": last_record_id}
 
 
