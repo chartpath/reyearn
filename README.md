@@ -1,4 +1,4 @@
-# Reyearn
+# Reyearn (WIP)
 
 ![](https://media.giphy.com/media/3orif368drh8LRG7WU/giphy.gif)
 
@@ -21,6 +21,26 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [ ] tutorial in docs
 - [ ] proper config management
 - [ ] basic JWT
+
+## Usage
+
+Assuming PostgresSQL is installed and running on the default port with no username or password (the default on Mac for homebrew formula builds), this sequence of commands should get you going.
+
+```shell
+$ pip install poetry
+$ poetry install
+...
+$ poetry shell
+(reyearn-venv)$ createdb reyearn_dev
+(reyearn-venv)$ alembic upgrade head
+(reyearn-venv)$ python -m server
+```
+
+To set up a data import see the [data import readme](./data/import/email/README.md). Then to manually run the importer pipeline to ingest the email data, run `python -m dags.importer`.
+
+Both the server and the importer DAG have debug configs for VS code.
+
+To test the API, once the server is running, go to http://127.0.0.1:8000/docs in your browser and call the endpoints. Follow the schema info provided to know what to include in request bodies. Creating annotations will trigger the model training pipeline to run, but right now it is just a stub without a real model behind it (coming soon).
 
 ## Implementation Details
 
