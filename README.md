@@ -28,16 +28,6 @@ A data experimentation and model training framework. Reyearn aims to help people
 
 Reyearn uses [Prefect](https://docs.prefect.io/core/getting_started/why-prefect.html) for parallel and distributed execution of workflows (DAGs). It uses [Dask](https://docs.dask.org/en/latest/why.html) for running serialized distributed tasks that integrate well with the Python data science ecosystem.
 
-The importer DAG looks like this:
-
-![](dags/importer.png)
-
-The trainer DAG looks like this:
-
-![](dags/trainer.png)
-
-Note: the top-level entities rand, limit, and class_type are parameters for controlling the sample.
-
 ### API tooling
 
 [FastAPI](https://fastapi.tiangolo.com/history-design-future/) is the web glue library of choice because it's async (thanks to [Starlette](https://www.starlette.io/)) and provides a lot of type safety and validation out of the box.
