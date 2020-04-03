@@ -23,7 +23,9 @@ A data experimentation and model training framework. Reyearn aims to help people
 
 ## Implementation Details
 
-Reyearn uses [`prefect`](https://docs.prefect.io/core/getting_started/why-prefect.html) for parallel and distributed execution of workflows (DAGs). It uses [`dask`](https://docs.dask.org/en/latest/why.html) for running serialized distributed tasks that integrate well with the Python data science ecosystem.
+### Data Workflows
+
+Reyearn uses [Prefect](https://docs.prefect.io/core/getting_started/why-prefect.html) for parallel and distributed execution of workflows (DAGs). It uses [Dask](https://docs.dask.org/en/latest/why.html) for running serialized distributed tasks that integrate well with the Python data science ecosystem.
 
 The importer DAG looks like this:
 
@@ -34,3 +36,11 @@ The trainer DAG looks like this:
 ![](dags/trainer.png)
 
 Note: the top-level entities rand, limit, and class_type are parameters for controlling the sample.
+
+### API tooling
+
+[FastAPI](https://fastapi.tiangolo.com/history-design-future/) is the web glue library of choice because it's async (thanks to [Starlette](https://www.starlette.io/)) and provides a lot of type safety and validation out of the box.
+
+### PostgreSQL Database
+
+Reyearn integrates as tightly as possible with PostgreSQL with a thin layer of SQLAlchemy Core on top for query composition and metadata reflection. Class label hierarchies are implemented using the [LTREE](https://www.postgresql.org/docs/9.1/ltree.html) data type. Alembic is used for migrations.
