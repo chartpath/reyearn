@@ -57,9 +57,9 @@ def upgrade():
             "status",
             sa.Enum(AnnotationStatus, schema=base_schema),
             server_default="unknown",
+            nullable=False,
         ),
         schema=base_schema,
-        nullable=False,
     )
 
 
