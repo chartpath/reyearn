@@ -59,6 +59,7 @@ def upgrade():
             server_default="unknown",
         ),
         schema=base_schema,
+        nullable=False,
     )
 
 

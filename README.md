@@ -12,7 +12,7 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [x] DB for experiments and models
 - [x] model training pipeline (implementation stubbed)
 - [x] API endpoints for annotations, predictions and observations
-- [ ] default text classifier with gensim
+- [ ] default text classifier with dask-ml TD-IDF/naive bayes
 - [ ] UUIDs for external access
 - [ ] symlinks for multi-label import
 - [ ] gzip file upload observations
@@ -21,6 +21,8 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [ ] tutorial in docs
 - [ ] proper config management
 - [ ] basic JWT
+- [ ] custom result handlers in DAGs for triage
+- [ ] default topic modelling with gensim  LDA
 
 ## Usage
 

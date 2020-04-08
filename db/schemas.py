@@ -17,8 +17,8 @@ classes = sa.Table(
     "classes",
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
-    sa.Column("type", sa.Enum(ClassTypes)),
-    sa.Column("label", LtreeType),
+    sa.Column("type", sa.Enum(ClassTypes), nullable=False),
+    sa.Column("label", LtreeType, nullable=False),
     schema=base_schema,
 )
 
@@ -46,7 +46,9 @@ annotations = sa.Table(
         sa.ForeignKey(f"{base_schema}.classes.id"),
         nullable=False,
     ),
-    sa.Column("status", sa.Enum(AnnotationStatus), server_default="unknown"),
+    sa.Column(
+        "status", sa.Enum(AnnotationStatus), server_default="unknown", nullable=False
+    ),
     schema=base_schema,
 )
 
@@ -54,8 +56,8 @@ observations = sa.Table(
     "observations",
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
-    sa.Column("text", sa.Text()),
-    sa.Column("md5", sa.String(), unique=True),
+    sa.Column("text", sa.Text(), nullable=False),
+    sa.Column("md5", sa.String(), unique=True, nullable=False),
     schema=default_tenant_schema,
 )
 

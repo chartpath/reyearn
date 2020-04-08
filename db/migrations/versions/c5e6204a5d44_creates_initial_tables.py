@@ -38,8 +38,8 @@ def upgrade():
     op.create_table(
         "classes",
         sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("type", sa.String(length=100)),
-        sa.Column("label", LtreeType),
+        sa.Column("type", sa.String(length=100), nullable=False),
+        sa.Column("label", LtreeType, nullable=False),
         schema=base_schema,
     )
 
@@ -52,8 +52,8 @@ def upgrade():
     op.create_table(
         "observations",
         sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("text", sa.Text()),
-        sa.Column("md5", sa.String(), unique=True),
+        sa.Column("text", sa.Text(), nullable=False),
+        sa.Column("md5", sa.String(), unique=True, nullable=False),
         schema=default_tenant_schma,
     )
 

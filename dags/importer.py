@@ -3,8 +3,6 @@ from prefect import task, Flow
 from prefect.engine.executors import DaskExecutor
 import os
 from prefect.tasks.postgres import PostgresExecute, PostgresFetch
-
-# uses a separate pool from the server app
 from db.schemas import observations, annotations
 
 pg_task = PostgresExecute("reyearn_dev", user=None, password=None, host="localhost",)
@@ -39,6 +37,9 @@ def load_labelled_data(chunked_labelled_files):
     for file in chunked_labelled_files:
         with open(file, "r") as filehandle:
             filecontent = filehandle.read()
+            # this appears to perform well, but if optimization is needed
+            # PostgresExecute can be extended to support connection.executemany()
+            # to run the whole chunk in a single transaction
             pg_task.run(
                 query=f"""
                     --sql
@@ -55,6 +56,9 @@ def load_unlabelled_data(chunked_unlabelled_files):
     for file in chunked_unlabelled_files:
         with open(file, "r") as filehandle:
             filecontent = filehandle.read()
+            # this appears to perform well, but if optimization is needed
+            # PostgresExecute can be extended to support connection.executemany()
+            # to run the whole chunk in a single transaction
             pg_task.run(
                 query=f"""
                     --sql
