@@ -13,6 +13,7 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [x] model training pipeline (implementation stubbed)
 - [x] API endpoints for annotations, predictions and observations
 - [ ] default text classifier with dask-ml TD-IDF/naive bayes
+- [ ] default cascade rules
 - [ ] convert to Hashing Vectorizer
 - [ ] swap out joblib backend for dask-ml
 - [ ] UUIDs for external access
