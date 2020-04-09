@@ -1,14 +1,21 @@
 from fastapi import FastAPI
 from api import handlers
-import os
+import os, sys
 from db.client import db as db_client
 import db.schemas as db_schemas
 from dags import importer, trainer
+from joblib import load as joblib_load
 
 DEBUG = True
 # add importer.main, trainer.main (or others) to trigger dags on startup
 # run them manually with `python -m dags.trainer` and `python -m dags.trainer`
 debug_startup_events = [db_client.connect]
+
+try:
+    model_latest = joblib_load("./models/latest.joblib")
+except FileNotFoundError:
+    print("No model trained yet, plase run this first: python -m dags.trainer")
+    sys.exit(1)
 
 if DEBUG:
     os.environ["PREFECT__LOGGING__LEVEL"] = "DEBUG"
@@ -28,6 +35,7 @@ else:
     )
 app.state.db_client = db_client
 app.state.db_schemas = db_schemas
+app.state.model_latest = model_latest
 
 app.include_router(handlers.router)
 

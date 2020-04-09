@@ -7,11 +7,11 @@ from prefect.engine.executors import DaskExecutor
 from prefect.tasks.postgres import PostgresExecute
 from db.schemas import observations, annotations
 
-import numpy
-from sklearn.datasets import fetch_20newsgroups, base
+from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn import metrics
+from joblib import dump
 
 # fetch unique subset of total annotated observations for training
 @task(max_retries=3, retry_delay=timedelta(seconds=1))
@@ -69,13 +69,23 @@ def test_model(model, training_test_data, training_reference_data, word_embeddin
         test_word_count_vector
     )
     predictions = model.predict(test_word_embeddings_tfidf)
-    print(
-        metrics.classification_report(
-            training_test_data.target,
-            predictions,
-            target_names=training_test_data.target_names,
-        )
+    report = metrics.classification_report(
+        training_test_data.target,
+        predictions,
+        target_names=training_test_data.target_names,
+        output_dict=True,
     )
+    model_is_improved = report["accuracy"] > 0.95  # todo: better than last deploy
+    return model_is_improved
+
+
+@task
+def deploy_model(model):
+    print("deploying model...")
+    try:
+        dump(model, "./models/latest.joblib")
+    except:
+        return False
 
 
 def main(params={"rand": True, "limit": 1000, "class_type": "email"}):
@@ -91,7 +101,11 @@ def main(params={"rand": True, "limit": 1000, "class_type": "email"}):
         training_test_data = fetch_training_test_data(rand, limit, class_type)
         word_embeddings = get_word_embeddings(training_reference_data)
         model = train_model(training_reference_data, word_embeddings)
-        test_model(model, training_test_data, training_reference_data, word_embeddings)
+        model_is_improved = test_model(
+            model, training_test_data, training_reference_data, word_embeddings
+        )
+        if model_is_improved:
+            deployed_model = deploy_model(model)
 
         # register with dashboard
         try:

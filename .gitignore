@@ -9,3 +9,4 @@ data/import/email/**
 dags/importer_latest*
 dags/trainer_latest*
 dask-worker-space
+models/**
