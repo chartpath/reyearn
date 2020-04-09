@@ -7,10 +7,10 @@ from prefect.engine.executors import DaskExecutor
 from prefect.tasks.postgres import PostgresExecute
 from db.schemas import observations, annotations
 
-from sklearn.datasets import fetch_20newsgroups
+import numpy
+from sklearn.datasets import fetch_20newsgroups, base
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 from sklearn.naive_bayes import MultinomialNB
-import numpy as np
 from sklearn import metrics
 
 # fetch unique subset of total annotated observations for training
@@ -29,8 +29,11 @@ def fetch_training_reference_data(rand, limit, class_type):
 # fetch separate unique subset of total annotated observations for testing
 @task(max_retries=3, retry_delay=timedelta(seconds=1))
 def fetch_training_test_data(rand, limit, class_type):
-    training_test_data = ["God is love", "OpenGL on the GPU is fast"]
-    print("fetching test data", training_test_data)
+    labels = ["alt.atheism", "soc.religion.christian", "comp.graphics", "sci.med"]
+    training_test_data = fetch_20newsgroups(
+        subset="train", categories=labels, shuffle=True, random_state=42
+    )
+    print("fetching test data for labels", training_test_data.target_names)
     return training_test_data
 
 
@@ -52,7 +55,7 @@ def get_word_embeddings(training_reference_data):
 @task
 def train_model(training_reference_data, word_embeddings):
     model = MultinomialNB().fit(
-        word_embeddings["word_embeddings_tfidf"], training_reference_data.target
+        word_embeddings["word_embeddings_tfidf"], training_reference_data.target,
     )
     return model
 
@@ -60,14 +63,19 @@ def train_model(training_reference_data, word_embeddings):
 @task
 def test_model(model, training_test_data, training_reference_data, word_embeddings):
     test_word_count_vector = word_embeddings["count_vectorizer"].transform(
-        training_test_data
+        training_test_data.data
     )
     test_word_embeddings_tfidf = word_embeddings["tfidf_transformer"].transform(
         test_word_count_vector
     )
     predictions = model.predict(test_word_embeddings_tfidf)
-    for observation, label in zip(training_test_data, predictions):
-        print("%r => %s" % (observation, training_reference_data.target_names[label]))
+    print(
+        metrics.classification_report(
+            training_test_data.target,
+            predictions,
+            target_names=training_test_data.target_names,
+        )
+    )
 
 
 def main(params={"rand": True, "limit": 1000, "class_type": "email"}):
