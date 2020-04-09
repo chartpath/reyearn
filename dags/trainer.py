@@ -2,45 +2,72 @@ from datetime import timedelta
 from prefect import task, Flow, Parameter
 from prefect.engine.executors import DaskExecutor
 
-# uses a separate pool from the server app
-from db.client import db as db_client
+# the connection pool used for the API is not serializable
+# use synchronous client for distributed transactions
+from prefect.tasks.postgres import PostgresExecute
+from db.schemas import observations, annotations
 
-# Fetch a unique subset of total annotated observations for training
+from sklearn.datasets import fetch_20newsgroups
+from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.naive_bayes import MultinomialNB
+import numpy as np
+from sklearn import metrics
+
+# fetch unique subset of total annotated observations for training
 @task(max_retries=3, retry_delay=timedelta(seconds=1))
-def fetch_training_data(rand, limit, class_type):
-    training_data = [
-        {"label": "email.business", "text": "This is a business email."},
-        {"label": "email.personal", "text": "This is a personal email."},
-    ]
-    print("fetching training data...", training_data)
-    return training_data
+def fetch_training_reference_data(rand, limit, class_type):
+    labels = ["alt.atheism", "soc.religion.christian", "comp.graphics", "sci.med"]
+    training_reference_data = fetch_20newsgroups(
+        subset="train", categories=labels, shuffle=True, random_state=42
+    )
+    print(
+        "fetching training data for labels", training_reference_data.target_names,
+    )
+    return training_reference_data
 
 
-# Fetch a separate unique subset of total annotated observations for testing
+# fetch separate unique subset of total annotated observations for testing
 @task(max_retries=3, retry_delay=timedelta(seconds=1))
-def fetch_test_data(rand, limit, class_type):
-    test_data = [
-        {
-            "label": "email.business",
-            "text": "This is a very new business email observation.",
-        },
-        {
-            "label": "email.personal",
-            "text": "This is a super new personal email observation.",
-        },
-    ]
-    print("fetching test data...", test_data)
-    return test_data
+def fetch_training_test_data(rand, limit, class_type):
+    training_test_data = ["God is love", "OpenGL on the GPU is fast"]
+    print("fetching test data", training_test_data)
+    return training_test_data
 
 
 @task
-def train_model(training_data):
-    print("training model...")
+def get_word_embeddings(training_reference_data):
+    # todo: test count vector with stop_words='english', parameterize if useful
+    count_vectorizer = CountVectorizer()
+    tfidf_transformer = TfidfTransformer()
+    word_count_vector = count_vectorizer.fit_transform(training_reference_data.data)
+    word_embeddings_tfidf = tfidf_transformer.fit_transform(word_count_vector)
+    return {
+        "count_vectorizer": count_vectorizer,
+        "tfidf_transformer": tfidf_transformer,
+        "word_count_vector": word_count_vector,
+        "word_embeddings_tfidf": word_embeddings_tfidf,
+    }
 
 
 @task
-def test_model(trained_model, test_data):
-    print("training model...")
+def train_model(training_reference_data, word_embeddings):
+    model = MultinomialNB().fit(
+        word_embeddings["word_embeddings_tfidf"], training_reference_data.target
+    )
+    return model
+
+
+@task
+def test_model(model, training_test_data, training_reference_data, word_embeddings):
+    test_word_count_vector = word_embeddings["count_vectorizer"].transform(
+        training_test_data
+    )
+    test_word_embeddings_tfidf = word_embeddings["tfidf_transformer"].transform(
+        test_word_count_vector
+    )
+    predictions = model.predict(test_word_embeddings_tfidf)
+    for observation, label in zip(training_test_data, predictions):
+        print("%r => %s" % (observation, training_reference_data.target_names[label]))
 
 
 def main(params={"rand": True, "limit": 1000, "class_type": "email"}):
@@ -52,10 +79,11 @@ def main(params={"rand": True, "limit": 1000, "class_type": "email"}):
         class_type = Parameter("class_type", default=params["class_type"])
 
         # tasks
-        training_data = fetch_training_data(rand, limit, class_type)
-        test_data = fetch_test_data(rand, limit, class_type)
-        trained_model = train_model(training_data)
-        test_model(trained_model, test_data)
+        training_reference_data = fetch_training_reference_data(rand, limit, class_type)
+        training_test_data = fetch_training_test_data(rand, limit, class_type)
+        word_embeddings = get_word_embeddings(training_reference_data)
+        model = train_model(training_reference_data, word_embeddings)
+        test_model(model, training_test_data, training_reference_data, word_embeddings)
 
         # register with dashboard
         try:

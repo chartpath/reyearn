@@ -2,7 +2,9 @@ from datetime import timedelta
 from prefect import task, Flow
 from prefect.engine.executors import DaskExecutor
 import os
-from prefect.tasks.postgres import PostgresExecute, PostgresFetch
+
+# the async db client pool used for the API is not serializable
+from prefect.tasks.postgres import PostgresExecute
 from db.schemas import observations, annotations
 
 pg_task = PostgresExecute("reyearn_dev", user=None, password=None, host="localhost",)

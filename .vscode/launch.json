@@ -14,6 +14,15 @@
             }
         },
         {
+            "name": "Trainer DAG",
+            "type": "python",
+            "request": "launch",
+            "module": "dags.trainer",
+            "env": {
+                "PREFECT__LOGGING__LEVEL": "DEBUG"
+            }
+        },
+        {
             "name": "Server",
             "type": "python",
             "request": "launch",
