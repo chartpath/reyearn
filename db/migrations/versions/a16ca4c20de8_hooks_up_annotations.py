@@ -7,6 +7,7 @@ Create Date: 2020-04-01 22:02:19.596433
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy_utils import LtreeType
 
 
 # revision identifiers, used by Alembic.
@@ -24,20 +25,23 @@ def upgrade():
     with op.batch_alter_table("annotations", schema=base_schema) as batch_op:
         batch_op.add_column(
             sa.Column(
-                "observation_id",
-                sa.Integer,
-                sa.ForeignKey(f"{default_tenant_schema}.observations.id"),
+                "observation_hash",
+                sa.String,
+                sa.ForeignKey(
+                    f"{default_tenant_schema}.observations.hash", ondelete="CASCADE",
+                ),
                 nullable=False,
             )
         )
         batch_op.add_column(
             sa.Column(
-                "class_id",
-                sa.Integer,
-                sa.ForeignKey(f"{base_schema}.classes.id"),
+                "class_label",
+                LtreeType,
+                sa.ForeignKey(f"{base_schema}.classes.label", ondelete="CASCADE",),
                 nullable=False,
             )
         )
+        batch_op.create_unique_constraint(None, ["observation_hash", "class_label"])
 
 
 def downgrade():

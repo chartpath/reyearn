@@ -6,14 +6,16 @@ A data experimentation and model training framework. Reyearn aims to help people
 
 ## TODO
 
-- [x] DB for classes, annotations, observations
+- [x] DB for classes, annotations, observations, experiments
 - [x] split schemas for multi-tenant support
 - [x] data ingestion ETL pipeline
 - [x] DB for experiments and models
 - [x] model training pipeline (implementation stubbed)
 - [x] API endpoints for annotations, predictions and observations
-- [ ] default text classifier with dask-ml TD-IDF/naive bayes
-- [ ] default cascade rules
+- [x] default text classifier with dask-ml TD-IDF/naive bayes
+- [x] initial cascade rules
+- [ ] annotation type column for features
+- [ ] annotation range column for NER and POS tags
 - [ ] convert to Hashing Vectorizer
 - [ ] swap out joblib backend for dask-ml
 - [ ] UUIDs for external access
@@ -27,6 +29,7 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [ ] custom result handlers in DAGs for failure triage
 - [ ] default topic modelling/clustering support
 - [ ] prodigy annotation UI integration
+- [ ] experiment tracking
 
 ## Usage
 

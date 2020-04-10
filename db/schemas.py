@@ -16,9 +16,9 @@ class ClassTypes(enum.Enum):
 classes = sa.Table(
     "classes",
     metadata,
-    sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("type", sa.Enum(ClassTypes), nullable=False),
-    sa.Column("label", LtreeType, nullable=False),
+    sa.Column("label", LtreeType, unique=True, nullable=False),
+    sa.PrimaryKeyConstraint("type", "label"),
     schema=base_schema,
 )
 
@@ -35,20 +35,21 @@ annotations = sa.Table(
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column(
-        "observation_id",
-        sa.Integer,
-        sa.ForeignKey(f"{default_tenant_schema}.observations.id"),
+        "observation_hash",
+        sa.String,
+        sa.ForeignKey(f"{default_tenant_schema}.observations.hash", ondelete="CASCADE"),
         nullable=False,
     ),
     sa.Column(
-        "class_id",
-        sa.Integer,
-        sa.ForeignKey(f"{base_schema}.classes.id"),
+        "class_label",
+        LtreeType,
+        sa.ForeignKey(f"{base_schema}.classes.label", ondelete="CASCADE"),
         nullable=False,
     ),
     sa.Column(
         "status", sa.Enum(AnnotationStatus), server_default="unknown", nullable=False
     ),
+    sa.UniqueConstraint("observation_hash", "class_label"),
     schema=base_schema,
 )
 
@@ -57,7 +58,7 @@ observations = sa.Table(
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("text", sa.Text(), nullable=False),
-    sa.Column("md5", sa.String(), unique=True, nullable=False),
+    sa.Column("hash", sa.String(), unique=True, nullable=False),
     schema=default_tenant_schema,
 )
 
