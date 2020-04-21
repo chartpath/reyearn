@@ -14,7 +14,7 @@ For raw, un-annotated data, use the root class label without specifying a subcla
 
 * `data/import/email/email`
 
-**Not implemented:** Re-use the same directories for multiple labels using symlinks:
+Re-use directories for multiple annotations of the same training data with different labels by using symlinks:
 
 ```
 $ cd email
