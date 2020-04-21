@@ -27,6 +27,7 @@
             "type": "python",
             "request": "launch",
             "module": "server",
+            "justMyCode": false
         },
     ]
 }

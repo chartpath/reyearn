@@ -146,11 +146,16 @@ def test_model(
 
 
 @task
-def deploy_model(model, model_report):
-    print("deploying model...")
+def deploy_model(model, model_report, word_embeddings, classes_and_labels):
+    payload = {
+        "count_vectorizer": word_embeddings["count_vectorizer"],
+        "tfidf_transformer": word_embeddings["tfidf_transformer"],
+        "model": model,
+        "target_labels": classes_and_labels[1],
+    }
     try:
         # todo: extend for multi-model
-        model_info = pg_fetch.run(
+        prev_model = pg_fetch.run(
             fetch="one",
             query="""
                 --sql
@@ -158,8 +163,8 @@ def deploy_model(model, model_report):
             """,
         )
         # is it better?
-        if model_info is None or model_report["accuracy"] > float(model_info[1]):
-            dumped = dump(model, "./models/latest.joblib")
+        if prev_model is None or model_report["accuracy"] > float(prev_model[1]):
+            dumped = dump(payload, "./models/latest.joblib")
             if len(dumped) == 1:
                 pg_ex.run(
                     query="""
@@ -215,7 +220,9 @@ def main(params={"label_limit": 500, "class_type": "email"}):
             word_embeddings,
             classes_and_labels,
         )
-        deployed_model = deploy_model(model, model_report)
+        deployed_model = deploy_model(
+            model, model_report, word_embeddings, classes_and_labels
+        )
 
         # register with dashboard
         try:
