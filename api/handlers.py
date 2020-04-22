@@ -3,6 +3,7 @@ from typing import List
 from fastapi import APIRouter, Request, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from db import schemas
+from sqlalchemy.sql import text as sqla_text
 from sqlalchemy_utils import Ltree
 from asyncpg.exceptions import UniqueViolationError
 from dags import trainer
@@ -78,7 +79,9 @@ async def read_observations(req: Request):
 @router.post("/observations", response_model=ObservationRead, status_code=201)
 async def create_observation(obs: ObservationCreate, req: Request):
     db = req.app.state.db_client
-    obs_hash = await db.execute(f"select md5('{obs.text}')")
+    obs_hash = await db.execute(
+        query=f"select md5(:text)", values={"text": obs_create.text}
+    )
 
     try:
         query = schemas.observations.insert().values(text=obs.text, hash=obs_hash)
@@ -118,27 +121,30 @@ async def read_prediction(class_type: str, predict: PredictionCreate, req: Reque
     if not predict.disable_persist:
         try:
             obs_create = ObservationCreate(text=predict.text)
-            obs_hash = await db.execute(f"select md5('{obs_create.text}')")
+            obs_hash = await db.execute(
+                query=f"select md5(:text)", values={"text": obs_create.text}
+            )
             obs_query = schemas.observations.insert().values(
                 text=obs_create.text, hash=obs_hash
             )
-            obs_last_record_id = await db.execute(obs_query)
+            await db.execute(obs_query)
         except UniqueViolationError as exception:
             warnings.warn(f"Observation exists: {exception}", Warning)
-        try:
-            anno_create = AnnotationCreate(
-                class_label=response_predictions[0],
-                observation_hash=obs_hash,
-                status="predicted",
-            )
-            anno_query = schemas.annotations.insert().values(
-                class_label=Ltree(anno_create.class_label),
-                observation_hash=anno_create.observation_hash,
-                status=anno_create.status,
-            )
-            anno_last_record_id = await db.execute(anno_query)
-        except UniqueViolationError as exception:
-            warnings.warn(f"Persisting new annotation failed: {exception}", Warning)
+        for prediction in response_predictions:
+            try:
+                anno_create = AnnotationCreate(
+                    class_label=prediction,
+                    observation_hash=obs_hash,
+                    status="predicted",
+                )
+                anno_query = schemas.annotations.insert().values(
+                    class_label=Ltree(anno_create.class_label),
+                    observation_hash=anno_create.observation_hash,
+                    status=anno_create.status,
+                )
+                await db.execute(anno_query)
+            except UniqueViolationError as exception:
+                warnings.warn(f"Annotation exists: {exception}", Warning)
     return {
         "predictions": response_predictions,
         "observation_hash": obs_hash,
