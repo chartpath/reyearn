@@ -14,6 +14,8 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [x] API endpoints for annotations, predictions and observations
 - [x] default text classifier with dask-ml TD-IDF/naive bayes
 - [x] initial cascade rules
+- [ ] hot reload models
+- [ ] add model versions to prediction endpoint
 - [ ] annotation type column for features
 - [ ] annotation range column for NER and POS tags
 - [ ] convert to Hashing Vectorizer

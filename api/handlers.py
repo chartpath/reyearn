@@ -1,3 +1,4 @@
+import warnings
 from typing import List
 from fastapi import APIRouter, Request, BackgroundTasks, HTTPException
 from pydantic import BaseModel
@@ -35,7 +36,7 @@ async def read_annotations(req: Request):
     return annotations
 
 
-@router.post("/annotations", response_model=AnnotationRead)
+@router.post("/annotations", response_model=AnnotationRead, status_code=201)
 async def create_annotation(
     anno: AnnotationCreate, req: Request, background_tasks: BackgroundTasks
 ):
@@ -63,36 +64,40 @@ class ObservationCreate(BaseModel):
 class ObservationRead(BaseModel):
     id: int
     text: str
+    hash: str
 
 
 @router.get("/observations", response_model=List[ObservationRead])
 async def read_observations(req: Request):
     db = req.app.state.db_client
-    observations = await db.fetch_all(schemas.observations.select())
+    # todo: paginate
+    observations = await db.fetch_all(schemas.observations.select(limit=100))
     return observations
 
 
-@router.post("/observations", response_model=ObservationRead)
-async def create_observations(obs: ObservationCreate, req: Request):
+@router.post("/observations", response_model=ObservationRead, status_code=201)
+async def create_observation(obs: ObservationCreate, req: Request):
     db = req.app.state.db_client
     obs_hash = await db.execute(f"select md5('{obs.text}')")
 
     try:
         query = schemas.observations.insert().values(text=obs.text, hash=obs_hash)
         last_record_id = await db.execute(query)
-        return {**obs.dict(), "id": last_record_id}
+        return {**obs.dict(), "id": last_record_id, "hash": obs_hash}
     except UniqueViolationError:
         raise HTTPException(status_code=409, detail="Observation already exists.")
 
 
 class PredictionCreate(BaseModel):
     text: str = None
-    observation_id: int = None
+    # new predictions will automatically be observed and annotated
+    # as "predicted" if not disabled in the request
+    disable_persist: bool = False
 
 
 class PredictionRead(BaseModel):
-    label: str
-    annotation_id: int = None
+    predictions: List[str]
+    observation_hash: str = None
 
 
 @router.post("/predictions/{class_type}", response_model=PredictionRead)
@@ -107,6 +112,34 @@ async def read_prediction(class_type: str, predict: PredictionCreate, req: Reque
     response_predictions = []
     for doc, label in zip([predict.text], predictions):
         predicted_label = model["target_labels"][label]
-        response_predictions.append({"label": predicted_label})
+        response_predictions.append(predicted_label)
         print("%r => %s" % (doc, predicted_label))
-    return response_predictions[0]  # todo: support bulk
+
+    if not predict.disable_persist:
+        try:
+            obs_create = ObservationCreate(text=predict.text)
+            obs_hash = await db.execute(f"select md5('{obs_create.text}')")
+            obs_query = schemas.observations.insert().values(
+                text=obs_create.text, hash=obs_hash
+            )
+            obs_last_record_id = await db.execute(obs_query)
+        except UniqueViolationError as exception:
+            warnings.warn(f"Observation exists: {exception}", Warning)
+        try:
+            anno_create = AnnotationCreate(
+                class_label=response_predictions[0],
+                observation_hash=obs_hash,
+                status="predicted",
+            )
+            anno_query = schemas.annotations.insert().values(
+                class_label=Ltree(anno_create.class_label),
+                observation_hash=anno_create.observation_hash,
+                status=anno_create.status,
+            )
+            anno_last_record_id = await db.execute(anno_query)
+        except UniqueViolationError as exception:
+            warnings.warn(f"Persisting new annotation failed: {exception}", Warning)
+    return {
+        "predictions": response_predictions,
+        "observation_hash": obs_hash,
+    }
