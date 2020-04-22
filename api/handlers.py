@@ -1,3 +1,4 @@
+import logging
 import warnings
 from typing import List
 from fastapi import APIRouter, Request, BackgroundTasks, HTTPException
@@ -40,7 +41,11 @@ async def read_annotations(req: Request):
 
 @router.post("/annotations", response_model=AnnotationRead, status_code=201)
 async def create_annotation(
-    anno: AnnotationCreate, req: Request, background_tasks: BackgroundTasks
+    anno: AnnotationCreate,
+    req: Request,
+    background_tasks: BackgroundTasks,
+    retrain_model: bool = False,
+    model_version: str = "latest",
 ):
     db = req.app.state.db_client
 
@@ -63,8 +68,8 @@ async def create_annotation(
     except UniqueViolationError:
         raise HTTPException(status_code=409, detail="Annotation already exists.")
 
-    # retrain the model
-    background_tasks.add_task(trainer.main)
+    if retrain_model:
+        background_tasks.add_task(trainer.main, version=model_version)
     return {**anno.dict(), "id": anno_rec[0], "status": anno_rec[1]}
 
 
@@ -114,9 +119,16 @@ class PredictionRead(BaseModel):
 
 
 @router.post("/predictions/{class_type}", response_model=PredictionRead)
-async def read_prediction(class_type: str, predict: PredictionCreate, req: Request):
+async def read_prediction(
+    class_type: str,
+    predict: PredictionCreate,
+    req: Request,
+    model_version: str = "latest",
+):
     db = req.app.state.db_client
-    model = req.app.state.model_latest
+
+    model = req.app.state.models[model_version]
+
     count_vectorizer = model["count_vectorizer"]
     tfidf_transformer = model["tfidf_transformer"]
     word_count_vector = count_vectorizer.transform([predict.text])
@@ -126,14 +138,14 @@ async def read_prediction(class_type: str, predict: PredictionCreate, req: Reque
     for doc, label in zip([predict.text], predictions):
         predicted_label = model["target_labels"][label]
         response_predictions.append(predicted_label)
-        print("%r => %s" % (doc, predicted_label))
+        logging.info("%r => %s" % (doc, predicted_label))
 
+    obs_create = ObservationCreate(text=predict.text)
+    obs_hash = await db.execute(
+        query=f"select md5(:text)", values={"text": obs_create.text}
+    )
     if not predict.disable_persist:
         try:
-            obs_create = ObservationCreate(text=predict.text)
-            obs_hash = await db.execute(
-                query=f"select md5(:text)", values={"text": obs_create.text}
-            )
             obs_query = schemas.observations.insert().values(
                 text=obs_create.text, hash=obs_hash
             )

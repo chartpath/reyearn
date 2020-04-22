@@ -1,3 +1,4 @@
+import os
 import warnings
 from datetime import timedelta
 from prefect import task, Flow, Parameter
@@ -166,13 +167,13 @@ def deploy_model(model, model_report, word_embeddings, classes_and_labels, versi
         )
         # is it better?
         if prev_model is None or model_report["accuracy"] > float(prev_model[1]):
-            dumped = dump(payload, "./models/latest.joblib")
+            dumped = dump(payload, f"./models/{version}.joblib")
             if len(dumped) == 1:
                 pg_ex.run(
                     query="""
                         --sql
                         insert into reyearn.models (version, accuracy, precision, recall, f1)
-                            values ('latest', %s, %s, %s, %s)
+                            values (%s, %s, %s, %s, %s)
                             on conflict (version) do update
                                 set accuracy = excluded.accuracy,
                                     precision = excluded.precision,
@@ -180,6 +181,7 @@ def deploy_model(model, model_report, word_embeddings, classes_and_labels, versi
                                     f1 = excluded.f1;
                     """,
                     data=(
+                        version,
                         model_report["accuracy"],
                         model_report["weighted avg"]["precision"],
                         model_report["weighted avg"]["recall"],
@@ -197,14 +199,14 @@ def deploy_model(model, model_report, word_embeddings, classes_and_labels, versi
         raise e
 
 
-def main(params={"label_limit": 500, "class_type": "email", "version": "latest"}):
+def main(version="latest"):
 
     with Flow("trainer", schedule=None) as flow:
 
         # shuffle = Parameter("shuffle", default=params["shuffle"])
-        label_limit = Parameter("label_limit", default=params["label_limit"])
-        class_type = Parameter("class_type", default=params["class_type"])
-        version = Parameter("version", default=params["version"])
+        label_limit = Parameter("label_limit", default=500)
+        class_type = Parameter("class_type", default="email")
+        version = Parameter("version", default=version)
 
         # tasks
         classes_and_labels = get_classes_and_labels()
@@ -236,7 +238,7 @@ def main(params={"label_limit": 500, "class_type": "email", "version": "latest"}
         # agent can be run externally with `prefect agent start`
         # flow.run_agent(show_flow_logs=True)
 
-        flow_state = flow.run(executor=DaskExecutor(), parameters=params)
+        flow_state = flow.run(executor=DaskExecutor())
 
         # uncomment to output pdf visualization of this flow
         # flow.visualize(flow_state=flow_state, filename="dags/trainer_latest")

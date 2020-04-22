@@ -14,14 +14,14 @@ A data experimentation and model training framework. Reyearn aims to help people
 - [x] API endpoints for annotations, predictions and observations
 - [x] default text classifier with dask-ml TD-IDF/naive bayes
 - [x] initial cascade rules
-- [ ] hot reload models
-- [ ] add model versions to prediction endpoint
+- [x] hot reload models
+- [x] add model versions to prediction endpoint
+- [x] symlinks for multi-label import
 - [ ] annotation type column for features
 - [ ] annotation range column for NER and POS tags
 - [ ] convert to Hashing Vectorizer
 - [ ] swap out joblib backend for dask-ml
 - [ ] UUIDs for external access
-- [ ] symlinks for multi-label import
 - [ ] gzip file upload observations
 - [ ] integration tests
 - [ ] CLI to wrap DAGs and API
