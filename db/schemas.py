@@ -1,5 +1,6 @@
 import enum
 import sqlalchemy as sa
+from sqlalchemy.sql import func
 from sqlalchemy_utils import LtreeType
 
 base_schema = "reyearn"
@@ -19,6 +20,8 @@ classes = sa.Table(
     sa.Column("type", sa.Enum(ClassTypes), nullable=False),
     sa.Column("label", LtreeType, unique=True, nullable=False),
     sa.PrimaryKeyConstraint("type", "label"),
+    sa.Column("time_created", sa.DateTime(timezone=True), server_default=func.now()),
+    sa.Column("time_updated", sa.DateTime(timezone=True), onupdate=func.now()),
     schema=base_schema,
 )
 
@@ -50,6 +53,8 @@ annotations = sa.Table(
         "status", sa.Enum(AnnotationStatus), server_default="unknown", nullable=False
     ),
     sa.UniqueConstraint("observation_hash", "class_label"),
+    sa.Column("time_created", sa.DateTime(timezone=True), server_default=func.now()),
+    sa.Column("time_updated", sa.DateTime(timezone=True), onupdate=func.now()),
     schema=base_schema,
 )
 
@@ -59,6 +64,8 @@ observations = sa.Table(
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("text", sa.Text(), nullable=False),
     sa.Column("hash", sa.String(), unique=True, nullable=False),
+    sa.Column("time_created", sa.DateTime(timezone=True), server_default=func.now()),
+    sa.Column("time_updated", sa.DateTime(timezone=True), onupdate=func.now()),
     schema=default_tenant_schema,
 )
 
@@ -69,6 +76,8 @@ experiments = sa.Table(
     sa.Column("name", sa.String(length=100), nullable=False),
     sa.Column("class_type", sa.Enum(ClassTypes), nullable=False),
     sa.Column("label_root", LtreeType, nullable=False),
+    sa.Column("time_created", sa.DateTime(timezone=True), server_default=func.now()),
+    sa.Column("time_updated", sa.DateTime(timezone=True), onupdate=func.now()),
     schema=base_schema,
 )
 
@@ -81,5 +90,7 @@ models = sa.Table(
     sa.Column("precision", sa.DECIMAL(precision=6, scale=5)),
     sa.Column("recall", sa.DECIMAL(precision=6, scale=5)),
     sa.Column("f1", sa.DECIMAL(precision=6, scale=5)),
+    sa.Column("time_created", sa.DateTime(timezone=True), server_default=func.now()),
+    sa.Column("time_updated", sa.DateTime(timezone=True), onupdate=func.now()),
     schema=base_schema,
 )

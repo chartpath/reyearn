@@ -7,6 +7,7 @@ Create Date: 2020-04-02 01:03:06.734885
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.sql import func
 import sqlalchemy_utils
 
 
@@ -28,6 +29,10 @@ def upgrade():
             "label_root", sqlalchemy_utils.types.ltree.LtreeType(), nullable=False
         ),
         sa.PrimaryKeyConstraint("id"),
+        sa.Column(
+            "time_created", sa.DateTime(timezone=True), server_default=func.now()
+        ),
+        sa.Column("time_updated", sa.DateTime(timezone=True), onupdate=func.now()),
         schema="reyearn",
     )
     op.create_table(
@@ -40,6 +45,10 @@ def upgrade():
         sa.Column("f1", sa.DECIMAL(precision=6, scale=5), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("version"),
+        sa.Column(
+            "time_created", sa.DateTime(timezone=True), server_default=func.now()
+        ),
+        sa.Column("time_updated", sa.DateTime(timezone=True), onupdate=func.now()),
         schema="reyearn",
     )
 

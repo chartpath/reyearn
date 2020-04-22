@@ -7,6 +7,7 @@ Create Date: 2020-03-31 22:10:16.707479
 """
 from alembic import op
 import sqlalchemy as sa
+from sqlalchemy.sql import func
 from sqlalchemy_utils import LtreeType
 
 print(op.get_context())
@@ -40,12 +41,20 @@ def upgrade():
         sa.Column("type", sa.String(length=100), nullable=False),
         sa.Column("label", LtreeType, unique=True, nullable=False,),
         sa.PrimaryKeyConstraint("type", "label"),
+        sa.Column(
+            "time_created", sa.DateTime(timezone=True), server_default=func.now()
+        ),
+        sa.Column("time_updated", sa.DateTime(timezone=True), onupdate=func.now()),
         schema=base_schema,
     )
 
     op.create_table(
         "annotations",
         sa.Column("id", sa.Integer, primary_key=True),
+        sa.Column(
+            "time_created", sa.DateTime(timezone=True), server_default=func.now()
+        ),
+        sa.Column("time_updated", sa.DateTime(timezone=True), onupdate=func.now()),
         schema=base_schema,
     )
 
@@ -54,6 +63,10 @@ def upgrade():
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("text", sa.Text(), nullable=False),
         sa.Column("hash", sa.String(), unique=True, nullable=False),
+        sa.Column(
+            "time_created", sa.DateTime(timezone=True), server_default=func.now()
+        ),
+        sa.Column("time_updated", sa.DateTime(timezone=True), onupdate=func.now()),
         schema=default_tenant_schma,
     )
 

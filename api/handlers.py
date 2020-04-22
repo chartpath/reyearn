@@ -118,9 +118,9 @@ class PredictionRead(BaseModel):
 
 @router.post("/predictions/{class_type}", response_model=PredictionRead)
 async def read_prediction(
-    class_type: str,
     predict: PredictionCreate,
     req: Request,
+    class_type: str = "email",
     model_version: str = "latest",
 ):
     db = req.app.state.db_client
