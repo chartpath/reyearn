@@ -23,11 +23,11 @@ pg_ex = PostgresExecute("reyearn_dev", user=None, password=None, host="localhost
 
 fetch_query_partial = f"""
 --sql
-select annos.class_label, obs.text, annos.observation_hash, obs.id obs_id
+select annos.class_label, obs.text
     from reyearn.annotations annos
         inner join reyearn_tenant_0.observations obs
         on annos.observation_hash = obs.hash
-        where annos.class_label = %s
+        where annos.class_label = %s and annos.status = 'confirmed'
 --end-sql
 """
 
@@ -245,4 +245,4 @@ def main(version="latest"):
 
 
 if __name__ == "__main__":
-    main()
+    main(version="test")

@@ -94,9 +94,7 @@ async def read_observations(req: Request):
 @router.post("/observations", response_model=ObservationRead, status_code=201)
 async def create_observation(obs: ObservationCreate, req: Request):
     db = req.app.state.db_client
-    obs_hash = await db.execute(
-        query=f"select md5(:text)", values={"text": obs_create.text}
-    )
+    obs_hash = await db.execute(query=f"select md5(:text)", values={"text": obs.text})
 
     try:
         query = schemas.observations.insert().values(text=obs.text, hash=obs_hash)
