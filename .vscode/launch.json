@@ -27,7 +27,10 @@
             "type": "python",
             "request": "launch",
             "module": "server",
-            "justMyCode": false
+            "justMyCode": false,
+            "env": {
+                "DEBUG": "True"
+            }
         },
     ]
 }

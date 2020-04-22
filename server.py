@@ -6,14 +6,13 @@ import db.schemas as db_schemas
 from dags import importer, trainer
 from joblib import load as joblib_load
 
-DEBUG = True
+DEBUG = os.getenv("DEBUG", False)
 # add importer.main, trainer.main (or others) to trigger dags on startup
 # run them manually with `python -m dags.trainer` and `python -m dags.trainer`
 debug_startup_events = [db_client.connect]
 
 if DEBUG:
     os.environ["PREFECT__LOGGING__LEVEL"] = "DEBUG"
-    print("set prefect log level:", os.environ["PREFECT__LOGGING__LEVEL"])
     app = FastAPI(
         title="Reyearn API",
         debug=DEBUG,
@@ -42,4 +41,9 @@ app.include_router(handlers.router)
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True, workers=4)
+    if DEBUG:
+        uvicorn.run(
+            "server:app", host="0.0.0.0", port=8000, workers=1, reload=True,
+        )
+    else:
+        uvicorn.run("server:app", host="0.0.0.0", port=8000, workers=4)

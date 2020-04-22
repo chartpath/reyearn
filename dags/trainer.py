@@ -199,7 +199,7 @@ def main(params={"label_limit": 500, "class_type": "email"}):
 
     with Flow("trainer", schedule=None) as flow:
 
-        # rand = Parameter("rand", default=params["rand"])
+        # shuffle = Parameter("shuffle", default=params["shuffle"])
         label_limit = Parameter("label_limit", default=params["label_limit"])
         class_type = Parameter("class_type", default=params["class_type"])
 
