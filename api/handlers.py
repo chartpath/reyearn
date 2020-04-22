@@ -28,6 +28,7 @@ class AnnotationRead(BaseModel):
     id: int
     class_label: str
     observation_hash: str
+    status: str
 
 
 @router.get("/annotations", response_model=List[AnnotationRead])
@@ -44,18 +45,27 @@ async def create_annotation(
     db = req.app.state.db_client
 
     try:
-        query = schemas.annotations.insert().values(
-            class_label=Ltree(anno.class_label),
-            observation_hash=anno.observation_hash,
-            status=anno.status,
+        anno_rec = await db.execute(
+            query="""
+                --sql
+                insert into reyearn.annotations (class_label, observation_hash, status)
+                    values (:class_label, :observation_hash, :status)
+                        on conflict (class_label, observation_hash)
+                        do update set status = excluded.status
+                        returning (id, status);
+            """,
+            values={
+                "class_label": Ltree(anno.class_label).path,
+                "observation_hash": anno.observation_hash,
+                "status": anno.status,
+            },
         )
-        last_record_id = await db.execute(query)
     except UniqueViolationError:
         raise HTTPException(status_code=409, detail="Annotation already exists.")
 
     # retrain the model
     background_tasks.add_task(trainer.main)
-    return {**anno.dict(), "id": last_record_id}
+    return {**anno.dict(), "id": anno_rec[0], "status": anno_rec[1]}
 
 
 class ObservationCreate(BaseModel):

@@ -146,12 +146,13 @@ def test_model(
 
 
 @task
-def deploy_model(model, model_report, word_embeddings, classes_and_labels):
+def deploy_model(model, model_report, word_embeddings, classes_and_labels, version):
     payload = {
         "count_vectorizer": word_embeddings["count_vectorizer"],
         "tfidf_transformer": word_embeddings["tfidf_transformer"],
         "model": model,
         "target_labels": classes_and_labels[1],
+        "version": version,
     }
     try:
         # todo: extend for multi-model
@@ -159,8 +160,9 @@ def deploy_model(model, model_report, word_embeddings, classes_and_labels):
             fetch="one",
             query="""
                 --sql
-                select version, accuracy::text from reyearn.models where version = 'latest';
+                select version, accuracy::text from reyearn.models where version = %s;
             """,
+            data=(version,),
         )
         # is it better?
         if prev_model is None or model_report["accuracy"] > float(prev_model[1]):
@@ -195,13 +197,14 @@ def deploy_model(model, model_report, word_embeddings, classes_and_labels):
         raise e
 
 
-def main(params={"label_limit": 500, "class_type": "email"}):
+def main(params={"label_limit": 500, "class_type": "email", "version": "latest"}):
 
     with Flow("trainer", schedule=None) as flow:
 
         # shuffle = Parameter("shuffle", default=params["shuffle"])
         label_limit = Parameter("label_limit", default=params["label_limit"])
         class_type = Parameter("class_type", default=params["class_type"])
+        version = Parameter("version", default=params["version"])
 
         # tasks
         classes_and_labels = get_classes_and_labels()
@@ -221,7 +224,7 @@ def main(params={"label_limit": 500, "class_type": "email"}):
             classes_and_labels,
         )
         deployed_model = deploy_model(
-            model, model_report, word_embeddings, classes_and_labels
+            model, model_report, word_embeddings, classes_and_labels, version
         )
 
         # register with dashboard
