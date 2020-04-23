@@ -44,7 +44,7 @@ To explore the API, once the server is running, go to http://127.0.0.1:8000/docs
 
 ### Data Workflows
 
-Reyearn uses [Prefect](https://docs.prefect.io/core/getting_started/why-prefect.html) for parallel and distributed execution of workflows (DAGs). It uses [Dask](https://docs.dask.org/en/latest/why.html) for running serialized distributed tasks that integrate well with the Python data science ecosystem.
+[Prefect](https://docs.prefect.io/core/getting_started/why-prefect.html) is used for parallel and distributed execution of workflows (DAGs). It uses [Dask](https://docs.dask.org/en/latest/why.html) for running serialized distributed tasks that integrate well with the Python data science ecosystem.
 
 ### API Tooling
 
@@ -52,7 +52,11 @@ Reyearn uses [Prefect](https://docs.prefect.io/core/getting_started/why-prefect.
 
 ### PostgreSQL Database
 
-Reyearn integrates as tightly as possible with PostgreSQL with a thin layer of SQLAlchemy Core on top for query composition and metadata reflection. Class label hierarchies are implemented using the [LTREE](https://www.postgresql.org/docs/9.1/ltree.html) data type. Alembic is used for migrations.
+Tight integration with PostgreSQL is the main approach, with a thin layer of SQLAlchemy Core on top for metadata reflection and query generation. Class label hierarchies are implemented using the [LTREE](https://www.postgresql.org/docs/9.1/ltree.html) data type. Alembic is used for migrations.
+
+### NLP Tooling
+
+All model training either uses or is compatible with scikit-learn APIs. This is the same approach as dask-ml.
 
 ## Roadmap/wishlist
 
@@ -60,6 +64,8 @@ This will probably be moved to an issue tracker. The list keeps expanding from t
 
 - [ ] model metadata and training endpoints
 - [ ] class label endpoints
+- [ ] integration tests
+- [ ] KNN search endpoint with btree_gist on pg_trgrm
 - [ ] plugin system with base classes
 - [ ] POS tagging endpoint
 - [ ] fine-tune default classifier with better sample control
@@ -68,7 +74,6 @@ This will probably be moved to an issue tracker. The list keeps expanding from t
 - [ ] convert naive bayes to use Hashing Vectorizer
 - [ ] swap out joblib backend for dask-ml
 - [ ] gzip file upload observations
-- [ ] integration tests
 - [ ] CLI to wrap DAGs and API
 - [ ] python and node client libraries
 - [ ] proper tutorial in docs
@@ -78,4 +83,4 @@ This will probably be moved to an issue tracker. The list keeps expanding from t
 - [ ] prodigy or equivalent annotation UI integration
 - [ ] experiment tracking/reporting
 - [ ] additional data ingestion sources (e.g. data lakes, distributed file systems)
-- [ ] additional ML algorithms (nearest neighbours clustering, topic modelling)
+- [ ] additional ML algorithms
