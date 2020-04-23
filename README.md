@@ -1,8 +1,8 @@
 # Reyearn
 
-Incremental learning and model orchestration for NLP. Reyearn aims to help people evolve NLP models in production by tightly looping the development pipeline: ETL -> annotation -> training -> testing -> deploying. It takes an ensemble-of-models approach. For more on the philosophy, read the [vision doc](docs/vision.md).
+A server that aims to help people evolve NLP models in production by tightly looping the development pipeline: ingestion -> annotation -> training -> testing -> deploying. It takes an ensemble-of-models approach. For more on the philosophy, read the [vision doc](docs/vision.md).
 
-Made by and for generalist engineers who need a scalable and production-ready NLP solution out of the box, with a friendly pathway towards understanding the underlying concepts. It won't be all things data engineering, or all things ML, but should have sane default solutions to common needs and a way to extend the functionality. See the [roadmap](#roadmap) below and feel free to request features!
+Made by and for generalists who need a scalable and production-ready NLP solution out of the box, with a friendly pathway towards understanding the underlying concepts. It won't be all things data engineering or all things ML, but should have sane default solutions to common needs and a way to extend the functionality. See the [roadmap](#roadmap/wishlist) and open some issues!
 
 ## Features
 
@@ -34,9 +34,11 @@ $ poetry shell
 (reyearn-venv)$ cd .. && python -m server
 ```
 
-To set up a data import see the [data import readme](./data/import/email/README.md). Then to manually run the importer pipeline to ingest the email data, run `python -m dags.importer`. The server and the importer and trainer DAGs have debug configs for VS code.
+To set up a data import see the [data import readme](./data/import/email/README.md). Then to manually run the importer pipeline to ingest the data, run `python -m dags.importer`. The server and the importer and trainer DAGs have debug configs for VS code.
 
-To test the API, once the server is running, go to http://127.0.0.1:8000/docs in your browser and call the endpoints. Follow the schema info provided to know what to include in request bodies.
+The model trainer can be run standalone with `python -m dags.trainer`.
+
+To explore the API, once the server is running, go to http://127.0.0.1:8000/docs in your browser and call the endpoints.
 
 ## Implementation Details
 
@@ -44,7 +46,7 @@ To test the API, once the server is running, go to http://127.0.0.1:8000/docs in
 
 Reyearn uses [Prefect](https://docs.prefect.io/core/getting_started/why-prefect.html) for parallel and distributed execution of workflows (DAGs). It uses [Dask](https://docs.dask.org/en/latest/why.html) for running serialized distributed tasks that integrate well with the Python data science ecosystem.
 
-### API tooling
+### API Tooling
 
 [FastAPI](https://fastapi.tiangolo.com/history-design-future/) is the web glue library of choice because it's async (thanks to [Starlette](https://www.starlette.io/)) and provides a lot of type safety and validation out of the box.
 
