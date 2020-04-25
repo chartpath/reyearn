@@ -1,8 +1,11 @@
-# Reyearn
+<p align="center">
+  <img src="./docs/logo.png">
+</p>
+<h1 align="center">Reyearn</h1>
 
 A server that aims to help people evolve NLP models in production by tightly looping the development pipeline: ingestion -> annotation -> training -> testing -> deploying. It takes an ensemble-of-models approach. For more on the philosophy, read the [vision doc](docs/vision.md).
 
-Made by and for generalists who need a scalable and production-ready NLP solution out of the box, with a friendly pathway towards understanding the underlying concepts. It won't be all things data engineering or all things ML, but should have sane default solutions to common needs and a way to extend the functionality. See the [roadmap](#roadmap/wishlist) and open some issues!
+Made by and for generalists who need a scalable and production-ready NLP solution out of the box, with a friendly pathway towards understanding the underlying concepts. It won't be all things data engineering or all things ML, but should have sane default solutions to common needs. See the roadmap below and open some issues!
 
 ## Features
 
@@ -79,6 +82,7 @@ This will probably be moved to an issue tracker. The list keeps expanding from t
 - [ ] proper tutorial in docs
 - [ ] proper config management
 - [ ] basic JWT/security
+- [ ] PII obfuscation
 - [ ] custom result handlers in DAGs for failure triage
 - [ ] prodigy or equivalent annotation UI integration
 - [ ] experiment tracking/reporting
