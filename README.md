@@ -20,7 +20,7 @@ Made by and for generalists who need a scalable and production-ready NLP solutio
 - If the newly trained model is more accurate than the previous one, it will be injected as the new live model via hot-reloading
 - Many different models can be used in parallel
 - Models can be trained on multiple labels
-- Naive bayes with TF-IDF vectors is the firs supported ML algorithm
+- Naive bayes with TF-IDF vectors is the initial text classification algorithm
 
 ## Usage
 
