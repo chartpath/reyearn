@@ -61,7 +61,7 @@ We might say inductive things like "my cat Fluffball will meow at me loudly for 
 
 We might also say [deductive](https://www.wikiwand.com/en/Modus_ponens#/Explanation) things like "all cats are cute and Fluffball is a cat, therefore Fluffball is cute", which works great for well-formalized domains and closed systems. Thankfully, proving facts is tedious and "beyond a reasonable doubt" is [all that is required](https://en.wikipedia.org/wiki/Rhetoric_of_science) in practice. Also, [logical positivism still can't capture reality](https://en.wikipedia.org/wiki/Logical_positivism#Logicism), even though there's no alternative that computers can understand yet.
 
-Neither deduction alone or induction alone would seem to be reliable for explaining real situations. What happens when we learn there are multiple subtypes of cats and cuteness, or need to support birds that are only sometimes cute? What if all cats are not cute? Is loud meowing *ever* indicative of cuteness? Let's say "sometimes", based on a large set of training data. Am I even *present* to feed Fluffball in the morning? Not if I'm out of town, which might be deduced from my calendar. This repeated application of inference by modus ponens (forward chaining deductive logic) or by statistical, inductive generalization, can lead to the best hypothetical explanations given the facts. If the domain is about solutions to problems, then an explanation might be a solution to the user's problem.
+Neither deduction alone or induction alone would seem to be reliable for explaining real situations. What happens when we learn there are multiple subtypes of cats and cuteness, or need to support birds that are only sometimes cute? What if all cats are not cute? Is loud meowing _ever_ indicative of cuteness? Let's say "sometimes", based on a large set of training data. Am I even _present_ to feed Fluffball in the morning? Not if I'm out of town, which might be deduced from my calendar. This repeated application of inference by modus ponens (forward chaining deductive logic) or by statistical, inductive generalization, can lead to the best hypothetical explanations given the facts. If the domain is about solutions to problems, then an explanation might be a solution to the user's problem.
 
 We can use a flavor of the scientific method that [has worked forever to make discoveries](http://philsci-archive.pitt.edu/15321/1/Abduction.pdf) and also to mete out various [forms of justice](https://plato.stanford.edu/entries/legal-reas-prec/). In legal reasoning, there doesn't seem to be a one-size-fits-all logical framework (although positivism is popular). Reyearn tries to be agnostic about jurisprudence. It [might not be important](http://users.cecs.anu.edu.au/~James.Popple/shyster/book/) (chapter 1.2) to legal expert systems.
 
@@ -73,12 +73,71 @@ Dialectical inferences are made about legislation to compute the ideal state of 
 
 There are a few major moving parts.
 
-- __Knowledge graph:__ Postgres LTREE data type for organizing annotation labels into an "ontology" (not formally grounded, but an unbounded forest to query the training data by)
-- __Triple store:__ straight ahead encoding of subject-object-predicate triples in Postgres, where the entities/facts are observations
-- __Experiment management:__
+- **Knowledge graph:** Postgres LTREE data type for organizing annotation labels into an "ontology" (not formally grounded, but an unbounded forest to query the training data by)
+- **Triple store:** straight ahead encoding of subject-object-predicate triples in Postgres, where the entities/facts are observations
+- **Experiment management:**
   - Model test results stored together in experiment tracking table
   - Integration with CI/CD for automating go-no-go checklists to drive deployment
   - Long term: Postgres schema-based branching and merging based on optimistic locking and versioning à la Elasticsearch and ActiveRecord (has been prototyped in a separate project but never integrated)
-- __Inference engine:__ querying the main decision trees at runtime can become a performance bottleneck, so the Rete algorithm is the best fit. For this, something descended from CLIPS like the Experta Python library can be useful.
-- __Classifiers:__ for case law, K Nearest Neighbour (k-NN) is the traditional technique from the literature. However, custom neural nets may be more appropriate. Not planned for the initial phase of development, as it is only needed for harder cases that rely on past court decisions.
-- __Annotation:__ For UI, SpaCy Prodigy or other online learning thing to avoid low value repetition and increase coverage of unique examples. Annotation event hooks call ingestion service to insert the label selections into Postgres range types which can have relational constraints, and enable overlapping annotations (for multiple entity types that intersect the same character ranges).
+- **Inference engine:** querying the main decision trees at runtime can become a performance bottleneck, so the Rete algorithm is the best fit. For this, something descended from CLIPS like the Experta Python library can be useful.
+- **Classifiers:** for case law, K Nearest Neighbour (k-NN) is the traditional technique from the literature. However, custom neural nets may be more appropriate. Not planned for the initial phase of development, as it is only needed for harder cases that rely on past court decisions.
+- **Annotation:** For UI, SpaCy Prodigy or other online learning thing to avoid low value repetition and increase coverage of unique examples. Annotation event hooks call ingestion service to insert the label selections into Postgres range types which can have relational constraints, and enable overlapping annotations (for multiple entity types that intersect the same character ranges).
+
+## Update to leverage LLMs in 2024 and beyond
+
+Since the design of the Reyearn architecture as an "abductive reasoning machine" for building an "Explainable AI", LLMs have largely replaced custom classifiers for many tasks in industry.
+
+At this point, most practitioners have built prototypes that wrap one of the largre commercail LLM vendors, experimented with [Retrieval Augmented Generation (RAG)](https://en.wikipedia.org/wiki/Prompt_engineering#Retrieval-augmented_generation), and had an opportunity to observe the limitations of these models and wrapper approaches.
+
+For example, I've done some experimental work to extend the [Supabase Doc Search Starter](https://github.com/supabase-community/nextjs-openai-doc-search) project for the [legal domain](https://github.com/chartpath/reso-legal).
+
+There is a great amount of coverage of the limitations of LLMs in the literature, but what stood out to me as a practitioner is that the reliability of their output depends heavily on the quality and completeness of the prompting. Just like tradtitional intent classification will not be reliable if the labels being predicted are not well-organized, LLMs are not reliable if the prompts are not well-organized.
+
+What I discovered is that all the same limitations of traditional statistical models and custom neural nets with respect to reasoning and planning are also true of LLMs.
+
+There is a recent groundbreaking paper which demonstrates a direct throughline from the design of the Reyearn architecture into a Generative AI world.
+
+### LLMs Can't Plan, But Can Help Planning in LLM-Modulo Frameworks
+
+In this [paper by Subbarao Kambhampati et al.](https://arxiv.org/abs/2402.01817), it is clear that LLMs are just as incapable of reasoning or planning as mast machine learning models.
+
+This is not a reason to avoid using ML, just as the inability of logical rules to describe the whole world is not a reason to avoid using them.
+
+Here are the main takeaways from the paper that will help to articulate he throughline from what a neuro-symbolic system looked like in 2020 to what it looks like in 2024. The most significant observation is that it's not different at all.
+
+The primary difference is that LLMs can be swapped with custom classifiers to save a lot of development time, but otherwise the Reyearn architecture remains the same.
+
+#### Takeways
+
+- LLMs can't, by themselves, do planning or self-verification (which is a form of reasoning).
+- These models are just n-gram approximators, just like traditional search engines.
+- Fine-tuning does not affect the planning performance of the model.
+- Performance is even worse when the model is fine-tuned on a specific task and the names of obejcts or actions are obfuscated.
+- Because these models can't verify their plans, they also cannot self-critique.
+- Even with multi-shot prompting (chain of thought), the model cannot verify its own plans.
+- The original hope that models could do plan verification came from computational complexity theory, in which verification is less complex than generating a plan.
+- However, it turns out that the initial "generation" step is not equivalent to complex plan generation because it is only approximate retrieval of existing knowledge, which means that verification through the same retrieval mechanism has equal complexity.
+- Direct LLM self-critique _just doesn't work_.
+- That said, approximate retrieval and extraction of knowledge from LLMs _can_ be used to help with planning in a neuro-symbolic system.
+- By incorporating human soundness critics, plans generated with their feedback can be useful for sythetic generation of fine-tuning data which would extend self-critique retrieval coverage linearly.
+- The soundness of the framework is _derived_ from the soundness of the critics. This can be seen as a limitation, but it is also a strength because it is a direct throughline from the human-in-the-loop design of the Reyearn architecture.
+- Fine-tuning _without_ domain-grounded prompting _won't work_.
+- Humans are only required once per domain and once per problem. After that, the critic role can be simulated programmatically.
+
+### Implications
+
+Here is a rough sketch of how the Reyearn architecture is be applied to leverage LLMs.
+
+- Use [GraphRAG](https://www.microsoft.com/en-us/research/blog/graphrag-unlocking-llm-discovery-on-narrative-private-data/) plus rules for planning and reasoning.
+  - Using a representation of the ontological (taxonomic and logical) context around the initial raw examples from vector search or other forms of retrieval.
+    - For example, entities in one category obey rules with respect to things in another cartegory, so their relationship can be "discovered" at retrieval time.
+  - Converting that representation into prompt-friendly format.
+- Ideal cases of plans are just templates of a set of entities with corresponding ontological grounding which have been approved by a human critic.
+- Such ideal cases can be used to generate fine-tuning data for the LLM as well as test cases for the continuous integration pipeline to detect potential drift by the underlying models.
+- New cases that may be ideal candidates are added to a queue for human soundness critics to verify before they are used in recommendations for other users or in fine-tuning.
+- Since models cannot be trusted to know when they have achieved the user's goals (which required verification and self-critique), we much continue to rely on traditional slot filling.
+  - This is another example of wishful thinking that appears in such cases as the otherwise promising [current implementation of OpenInterpreter](https://github.com/OpenInterpreter/open-interpreter/blob/main/interpreter/core/core.py#L39).
+  - However, models can extract the slot values from the collected outputs, and rules can determine when ther are all filled.
+- If answers are opposites of ideal cases, they can be recycled to further ground the prompts with negative examples.
+
+It seems that there is enough discourse in the literature to suggest that the Reyearn architecture remains a valid approach to building Explainable AI, even moreso in the age of LLMs.
